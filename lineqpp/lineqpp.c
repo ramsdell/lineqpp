@@ -24,7 +24,7 @@ const char version[] = VERSION;
 const char version[] = "Version information not available";
 #endif
 
-static int 
+static int
 go(int debug, char *input)
 {
   solver_init(debug);

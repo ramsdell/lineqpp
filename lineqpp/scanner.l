@@ -8,7 +8,7 @@
   references to variables solved by linear equations with their
   values.  VAR#r inserts a VAR's real part, and VAR#i inserts a VAR's
   imaginary part.  When the scanner is in the leq start condition, it
-  interprets its input as linear equations to be solved.  
+  interprets its input as linear equations to be solved.
 */
 
 #include <stdio.h>
@@ -25,10 +25,10 @@ static int lineno = 1;
 
 %x		leq
 
-letter          [A-Za-z]
-digit           [0-9]
-id              {letter}({letter}|{digit}|_)*
-var             {id}#(r|i)
+letter		[A-Za-z]
+digit		[0-9]
+id		{letter}({letter}|{digit}|_)*
+var		{id}#(r|i)
 sign		("+"|"-")?
 num		{sign}({digit}+("."{digit}*)?|"."{digit}+)
 punct		"+"|"-"|"*"|"/"|"^"|"("|")"|"="|";"
@@ -49,7 +49,7 @@ punct		"+"|"-"|"*"|"/"|"^"|"("|")"|"="|";"
 
 <leq>{punct}	{ return yytext[0]; }
 
-<leq>.          { return UNUSED; }
+<leq>.		{ return UNUSED; }
 
 %%
 

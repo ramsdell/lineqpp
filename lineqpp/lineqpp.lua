@@ -1,3 +1,9 @@
+local function display(s)
+   if verbose then
+      io.stderr:write(s)
+   end
+end
+
 local Complex = {}
 
 local function mk_complex(x, y)
@@ -50,26 +56,28 @@ end
 
 local function show(t)
    if type(t) == "table" then
-      io.stderr:write("(")
+      display("(")
       for i = 1, #t - 1 do
 	 show(t[i])
-	 io.stderr:write(" ")
+	 display(" ")
       end
       show(t[#t])
-      io.stderr:write(")")
+      display(")")
    elseif type(t) == "string" or type(t) == "number" then
-      io.stderr:write(t)
+      display(t)
    else
-      io.stderr:write("?")
+      display("?")
    end
 end
 
 function mk_eq(left, right)
    show(left)
-   io.stderr:write("\n")
+   display("\n")
    show(right)
-   io.stderr:write("\n\n")
+   display("\n\n")
    return right
 end
 
-
+function translate(s)
+   return nil
+end

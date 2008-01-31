@@ -1,3 +1,8 @@
+/*
+  C interface into the equation solver in Lua
+  Copyright (C) 2008 John D. Ramsdell
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <lua.h>
@@ -19,6 +24,8 @@ pcall_msg(void)
     return "no error message available";
 }
 
+/* Routines for initialization */
+
 /* Libraries used by lineqpp */
 static const luaL_Reg lualibs[] = {
   {"", luaopen_base},
@@ -39,6 +46,7 @@ solver_init(int debug)
     lua_call(L, 1, 0);
   }
 
+  /* Load Lua code */
   if (luaL_loadbuffer(L, (const char*)lineqpp_lua_bytes,
 		      sizeof(lineqpp_lua_bytes), lineqpp_lua_source)) {
     fprintf(stderr, "%s\n", pcall_msg());
@@ -51,6 +59,10 @@ solver_init(int debug)
     lua_close(L);
     exit(1);
   }
+
+  /* Set verbose to the value of the debug flag */
+  lua_pushboolean(L, debug);
+  lua_setglobal(L, "verbose");
 }
 
 void
@@ -74,7 +86,9 @@ pcall(int nargs, int nresults)
     err(pcall_msg());
 }
 
-void 
+/* Parser actions -- expression constructors */
+
+void
 mk_var(char *var)
 {
   if (!lua_checkstack(L, 2))
@@ -84,7 +98,7 @@ mk_var(char *var)
   pcall(1, 1);
 }
 
-void 
+void
 mk_num(double num)
 {
   if (!lua_checkstack(L, 2))
@@ -103,37 +117,37 @@ void binop(const char *op)
   pcall(2, 1);
 }
 
-void 
+void
 mk_fun(void)
 {
   binop("mk_fun");
 }
 
-void 
+void
 mk_plus(void)
 {
   binop("mk_plus");
 }
 
-void 
+void
 mk_sub(void)
 {
   binop("mk_sub");
 }
 
-void 
+void
 mk_mul(void)
 {
   binop("mk_mul");
 }
 
-void 
+void
 mk_div(void)
 {
   binop("mk_div");
 }
 
-void 
+void
 mk_neg(void)
 {
   if (!lua_checkstack(L, 1))
@@ -143,26 +157,39 @@ mk_neg(void)
   pcall(1, 1);
 }
 
-void 
+void
 mk_exp(void)
 {
   binop("mk_exp");
 }
 
-void 
+/* Parser actions -- equations and commands */
+
+void
 mk_eq(void)
 {
   binop("mk_eq");
 }
 
-void 
+void
 mk_cmd(void)
 {
   lua_settop(L, 0);
 }
 
+/* Substitute a value for a variable when there is a translation. */
+
 void
 translate(const char *var)
 {
-  printf("<%s>", var);
+  if (!lua_checkstack(L, 2))
+    err("Stack cannot grow");
+  lua_getfield(L, LUA_GLOBALSINDEX, "translate");
+  lua_pushstring(L, var);
+  pcall(1, 1);
+  const char *s = lua_tostring(L, -1);
+  if (s)
+    var = s;
+  printf("%s", var);
+  lua_pop(L, 1);
 }
