@@ -1,0 +1,3 @@
+#lineqpp a = b ; a = 4 = x + y / p;
+#lineqpp a[x,y] = b
+double a = a#r;

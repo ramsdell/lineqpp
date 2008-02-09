@@ -1,0 +1,3 @@
+#! /bin/sh
+./lineqpp -d ${srcdir}/lineqppchk.lep > lineqppchk.out 2>&1
+exec diff -u ${srcdir}/lineqppchk.txt lineqppchk.out

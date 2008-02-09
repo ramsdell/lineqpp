@@ -31,7 +31,7 @@ id		{letter}({letter}|{digit}|_)*
 var		{id}#(r|i)
 sign		("+"|"-")?
 num		{sign}({digit}+("."{digit}*)?|"."{digit}+)
-punct		"+"|"-"|"*"|"/"|"^"|"("|")"|"="|";"
+punct		"+"|"-"|"*"|"/"|"^"|"["|","|"]"|"("|")"|"="|";"
 
 %%
 \n		{ lineno++; putchar('\n'); }

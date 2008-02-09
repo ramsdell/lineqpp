@@ -29,9 +29,10 @@ pcall_msg(void)
 /* Libraries used by lineqpp */
 static const luaL_Reg lualibs[] = {
   {"", luaopen_base},
-  {LUA_TABLIBNAME, luaopen_table},
   {LUA_MATHLIBNAME, luaopen_math},
-  {LUA_IOLIBNAME, luaopen_io},	/* For debugging */
+  {LUA_TABLIBNAME, luaopen_table},
+  {LUA_STRLIBNAME, luaopen_string},
+  {LUA_IOLIBNAME, luaopen_io},	/* For debug output */
   {NULL, NULL}
 };
 
@@ -93,7 +94,7 @@ mk_var(char *var)
 {
   if (!lua_checkstack(L, 2))
     err("Stack cannot grow");
-  lua_getfield(L, LUA_GLOBALSINDEX, "mk_var");
+  lua_getfield(L, LUA_GLOBALSINDEX, "variable");
   lua_pushstring(L, var);
   pcall(1, 1);
 }
@@ -103,7 +104,7 @@ mk_num(double num)
 {
   if (!lua_checkstack(L, 2))
     err("Stack cannot grow");
-  lua_getfield(L, LUA_GLOBALSINDEX, "mk_num");
+  lua_getfield(L, LUA_GLOBALSINDEX, "number");
   lua_pushnumber(L, num);
   pcall(1, 1);
 }
@@ -118,33 +119,43 @@ void binop(const char *op)
 }
 
 void
-mk_fun(void)
+mk_app(void)
 {
-  binop("mk_fun");
+  binop("application");
 }
 
 void
-mk_plus(void)
+mk_med(void)
 {
-  binop("mk_plus");
+  if (!lua_checkstack(L, 1))
+    err("Stack cannot grow");
+  lua_getfield(L, LUA_GLOBALSINDEX, "mediation");
+  lua_insert(L, -4);
+  pcall(3, 1);
+}
+
+void
+mk_add(void)
+{
+  binop("sum");
 }
 
 void
 mk_sub(void)
 {
-  binop("mk_sub");
+  binop("difference");
 }
 
 void
 mk_mul(void)
 {
-  binop("mk_mul");
+  binop("product");
 }
 
 void
 mk_div(void)
 {
-  binop("mk_div");
+  binop("quotient");
 }
 
 void
@@ -152,15 +163,15 @@ mk_neg(void)
 {
   if (!lua_checkstack(L, 1))
     err("Stack cannot grow");
-  lua_getfield(L, LUA_GLOBALSINDEX, "mk_neg");
+  lua_getfield(L, LUA_GLOBALSINDEX, "negation");
   lua_insert(L, -2);
   pcall(1, 1);
 }
 
 void
-mk_exp(void)
+mk_pow(void)
 {
-  binop("mk_exp");
+  binop("exponentiation");
 }
 
 /* Parser actions -- equations and commands */
@@ -168,7 +179,7 @@ mk_exp(void)
 void
 mk_eq(void)
 {
-  binop("mk_eq");
+  binop("equation");
 }
 
 void

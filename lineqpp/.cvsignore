@@ -5,6 +5,7 @@ parser.c
 missing
 lineqpp.h
 lineqpp
+lineqppchk.out
 install-sh
 depcomp
 configure

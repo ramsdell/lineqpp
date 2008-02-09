@@ -22,7 +22,7 @@
 %start start
 %%
 
-start:    opt_cmds		{ solver_close(); }
+start:    opt_cmds			{ solver_close(); }
 
 opt_cmds:
         | cmds opt_semi
@@ -30,21 +30,22 @@ opt_cmds:
 opt_semi:
         | ';'
 
-cmds:	  eqns			{ mk_cmd(); }
-	| cmds ';' eqns		{ mk_cmd(); }
+cmds:	  eqns				{ mk_cmd(); }
+	| cmds ';' eqns			{ mk_cmd(); }
 
-eqns:	  exp '=' exp		{ mk_eq(); }
-	| eqns '=' exp		{ mk_eq(); }
+eqns:	  exp '=' exp			{ mk_eq(); }
+	| eqns '=' exp			{ mk_eq(); }
 
 exp:      prim
-	| ID prim		{ mk_fun(); }
-        | exp '+' exp		{ mk_plus(); }
-        | exp '-' exp		{ mk_sub(); }
-        | exp '*' exp		{ mk_mul(); }
-        | exp '/' exp		{ mk_div(); }
-        | '-' exp  %prec NEG	{ mk_neg(); }
-        | exp '^' exp		{ mk_exp(); }
+	| ID prim			{ mk_app(); }
+        | exp '+' exp			{ mk_add(); }
+        | exp '-' exp			{ mk_sub(); }
+        | exp '*' exp			{ mk_mul(); }
+        | exp '/' exp			{ mk_div(); }
+        | '-' exp  %prec NEG		{ mk_neg(); }
+        | exp '^' exp			{ mk_pow(); }
 
 prim:	  NUM
 	| ID
         | '(' exp ')'
+	| prim '[' exp ',' exp ']'	{ mk_med(); }
