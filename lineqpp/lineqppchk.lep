@@ -1,3 +1,6 @@
-#lineqpp a = b ; a = 4 = x + y / p;
-#lineqpp a[x,y] = b
+#lineqpp a = b ; a = 4;
 double a = a#r;
+#lineqpp a[x,y] = b
+
+
+
