@@ -1,6 +1,7 @@
 #lineqpp a = b ; a = 4;
 double a = a#r;
-#lineqpp a[x,y] = b
+#lineqpp a[x,y] = b;
+#lineqpp abs = w;
 
 
 

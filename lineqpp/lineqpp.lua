@@ -1,6 +1,32 @@
--- Say something about error messages
+--[[ 
 
--- message level
+Equation solver for the Linear Equation Preprocessor
+Copyright (C) 2008 John D. Ramsdell
+This software is covered by the MIT Open Source License
+
+This file contains the linear equation solver used to derive
+substitutions for variables found by the preprocessor.  The first
+section implements complex numbers.  The second section implements
+linear polynomials.  The third section contains the solver and the
+functions used by the parser to construct linear polynomials.
+
+The program maintains an association between each dependent variable
+and the linear polynomial of independent variables that defines the
+variable.  Usually, upon solving an equation from the input, a new
+dependent variable and its linear polynomial is added, and occurrences
+of the variable as an independent variable in other linear polynomials
+is replaced by the new dependency.  Dependent variables defined by a
+constant polynomial are candidates for substitution by the
+preprocessor.
+
+The linear equation solver was inspired by, and patterned after the
+one in MetaPost, the main difference being that all numbers in this
+sytem are complex numbers.
+
+]]
+
+-- Errors orginated by this code are normally printed using an error
+-- level of zero.  Consider setting the level to one when debugging.
 
 local level = 0
 
@@ -8,13 +34,19 @@ local function err(msg)
    error(msg, level)
 end
 
--- Say something about verbose
+-- When this code is loaded into the running C program, it sets the
+-- global variable verbose to true when the program is running in
+-- debugging mode.  In that mode, debugging information is sent to the
+-- standard error stream.
 
 local function display(s)
    return io.stderr:write(s)
 end
 
 -- Real numbers
+
+-- Use a tolerance to determine if a number is close enough to zero to
+-- be considered to be zero.
 
 local tol = 1.0e-6
 
@@ -33,10 +65,13 @@ end
 
 -- Complex numbers
 
-local Complex = {}
+-- Reference: "Introduction to Complex Variables and Applications",
+-- Ruel V. Churchill, McGraw-Hill Book Company, Inc, 1949.
+
+local Complex = {}		-- The complex number metatable
 Complex.__index = Complex
 
-local function complex(x, y)
+local function complex(x, y)	-- The complex number constructor
    return setmetatable({r = x, i = y or 0}, Complex)
 end
 
@@ -45,12 +80,17 @@ function Complex.mag(z)
    return math.max(math.abs(z.r), math.abs(z.i))
 end
 
-function Complex.is_zero(z)
+function Complex.is_zero(z)	-- Zero test using mag metric
    return is_zero(z.r) and is_zero(z.i)
 end
 
-function Complex.is_one(z)
+function Complex.is_one(z)	-- One test using mag metric
    return is_zero(z.r - 1) and is_zero(z.i)
+end
+
+function Complex.zero(z)
+   z.r = zero(z.r)		-- Replace numbers close
+   z.i = zero(z.i)		-- to zero with zero
 end
 
 function Complex.__eq(z1, z2)
@@ -72,19 +112,72 @@ end
 function Complex.__mul(z1, z2)
    local x1, y1, x2, y2 = z1.r, z1.i, z2.r, z2.i
    return complex(x1 * x2 - y1 * y2,
-		  y1 * x2 + x1 * y2)
+		  x1 * y2 + x2 * y1)
 end
 
 function Complex.__div(z1, z2)
    local x1, y1, x2, y2 = z1.r, z1.i, z2.r, z2.i
    local sq = x2 * x2 + y2 * y2
    return complex((x1 * x2 + y1 * y2) / sq,
-		  (y1 * x2 + x1 * y2) / sq)
+		  (x2 * y1 - x1 * y2) / sq)
 end
 
--- __pow should at least support squaring.
 function Complex.__pow(z1, z2)
-   err("exponention is broken")
+   if not is_zero(z2.i) then
+      err("exponent must be real")
+   else
+      z2:zero()
+      return (z1:log() * z2):exp()
+   end
+end
+
+function Complex.conj(z)
+   return complex(z.r, -z.i)
+end
+
+function Complex.abs(z)
+   local x, y = z.r, z.i
+   return complex(math.sqrt(x * x + y * y))
+end
+
+function Complex.exp(z)
+   local x, y = z.r, z.i
+   local r = math.exp(x)
+   return complex(r * math.cos(y), r * math.sin(y))
+end
+
+function Complex.log(z)
+   local x, y = z.r, z.i
+   local r2 = x * x + y * y
+   return complex(0.5 * math.log(r2), math.atan2(y, x))
+end
+
+function Complex.cos(z)
+   local x, y = z.r, z.i
+   return complex(math.cos(x) * math.cosh(y), 
+		  -math.sin(x) * math.sinh(y))
+end
+
+function Complex.sin(z)
+   local x, y = z.r, z.i
+   return complex(math.sin(x) * math.cosh(y), 
+		  math.cos(x) * math.sinh(y))
+end
+
+function Complex.rad(z)
+   if not is_zero(z.i) then
+      err("rad argument must be real")
+   else
+      return complex(math.rad(z.r))
+   end
+end
+
+function Complex.deg(z)
+   if not is_zero(z.i) then
+      err("deg argument must be real")
+   else
+      return complex(math.deg(z.r))
+   end
 end
 
 -- To string method
@@ -113,21 +206,21 @@ function Complex.is_sum(z)
    return not is_zero(z.r) and not is_zero(z.i)
 end
 
--- Mathematical functions
-
--- The func table maps strings to functions that take a complex number
--- and produce one.
-
-local func = {}
-
 -- Translation table
+
+-- When a variable has solved, its real and imaginary parts are placed
+-- in the translation table for use by the preprocessor substitution
+-- mechanism.
 
 local translation = {}
 
 local function solved(v, z)
-   translation[v.."#r"] = tostring(zero(z.r));
-   translation[v.."#i"] = tostring(zero(z.i)));
+   translation[v.."#r"] = tostring(zero(z.r))
+   translation[v.."#i"] = tostring(zero(z.i))
 end
+
+-- This function is called when the preprocessor finds something to be
+-- replaced.
 
 function translate(s)
    return translation[s]
@@ -144,14 +237,15 @@ end
 --
 -- Though real numbers are shown above, complex numbers are used.
 
-local Linear = {}
+local Linear = {}		-- Linear polynomial metatable
 Linear.__index = Linear
 
-local function linear(c, ts)
+local function linear(c, ts)	-- Linear polynomial constructor
    return setmetatable({c = c, ts = ts or {}}, Linear)
 end
 
--- Delete linear terms with zero coefficients
+-- Delete linear terms with zero coefficients, and replace the
+-- constant term with zero when it is close to zero.
 function Linear.simplify(p)
    local a = {}			-- Collect terms to be deleted
    for v, c in pairs(p.ts) do
@@ -162,6 +256,7 @@ function Linear.simplify(p)
    for i in ipairs(a) do	-- Delete collected terms
       p.ts[a[i]] = nil
    end
+   p.c:zero()
 end
 
 -- Compute the number of entries in a table
@@ -222,7 +317,7 @@ function Linear.__sub(p1, p2)
    return linear(p1.c - p2.c, ts)
 end
 
-function Linear.__umn(p)
+function Linear.__unm(p)
    local ts = {}
    for v, c in pairs(p.ts) do
       ts[v] = -c
@@ -235,7 +330,7 @@ function Linear.__mul(p1, p2)
    if not c1 then
       c1 = p2:number()
       if not c1 then
-	 err("both in product not a number")
+	 err("muliplier and multiplicand both not a number")
       else
 	 p2 = p1
       end
@@ -252,16 +347,13 @@ function Linear.__div(p1, p2)
    if not c2 then
       err("dividend is not a number")
    end
-   if is_zero(c2) then
-      c2 = tol
-   end
    return linear(complex(1) / c2) * p1
 end
 
 function Linear.__pow(p1, p2)
    local c1, c2 = p1:number(), p2:number()
    if not c1 then
-      err("exponent base not a number") -- FIX ME
+      err("exponentiation base not a number")
    elseif not c2 then
       err("exponent not a number")
    else
@@ -269,6 +361,9 @@ function Linear.__pow(p1, p2)
    end
 end
 
+-- v1 is a dependent variable defined by p1.  If p1 does not refer to
+-- v2, this function returns p2 unchanged.  Otherwise it substitutes
+-- p2 for v2 in p1, and reports the update if debugging.
 function Linear.subst(p1, v1, p2, v2)
    local c1 = p1.ts[v2]
    if not c1 then
@@ -281,12 +376,14 @@ function Linear.subst(p1, v1, p2, v2)
 	 display(v1.." is "..tostring(p1).."\n")
       end
       c1 = p1:number()
-      if c1 then
+      if c1 then		-- We found an answer!
 	 solved(v1, c1)
       end
       return p1
    end
 end
+
+-- To string method
 
 -- Sorted pairs iterator from PIL 2nd Ed, pg. 173.
 local function sorted_pairs(t)
@@ -323,9 +420,50 @@ function Linear.__tostring(p)
    end
 end
 
--- The enviroment maps variables to linear polynomials
+-- Mathematical functions--maps from complex values to complex values
+
+-- Set up metatable so it reports attempts to use functions as variables.
+
+local Map_missing = {}
+function Map_missing.__index(table, key)
+   err("function used as a variable")
+end
+
+local Map = setmetatable({}, Map_missing)
+Map.__index = Map
+
+local function map(name, func)	-- The math function constructor
+   return setmetatable({name = name, func = func or Complex[name]}, Map)
+end
+
+function Map.subst(map)		-- Ensure substitutions do nothing
+   return map			-- to a math function
+end
+
+function Map.__tostring(map)
+   return map.name
+end
+
+-- The enviroment maps variables to linear polynomials or math
+-- functions.  When a variable maps to a linear polynomial, it is a
+-- dependent variable that is defined by a linear polynomial which
+-- contains only independent variables.
 
 local env = {}
+
+-- Set up the initial environment
+
+env.i = linear(complex(0, 1))
+env.pi = linear(complex(math.pi))
+env.abs = map("abs")
+env.exp = map("exp")
+env.log = map("log")
+env.cos = map("cos")
+env.sin = map("sin")
+env.rad = map("rad")
+env.deg = map("deg")
+
+-- Linear equation solver
 
 local function solve(p)
    p:simplify()
@@ -337,6 +475,7 @@ local function solve(p)
 	 err("inconsistent equation")
       end
    end
+   -- Find the linear term with the coefficient of maximum magnitude.
    local m_max, v_max, c_max = 0
    for v, c in pairs(p.ts) do
       local m = c:mag()
@@ -344,53 +483,54 @@ local function solve(p)
 	 m_max, v_max, c_max = m, v, c
       end
    end
+   -- Now v_max is the variable, and c_max is its coefficient.
+   -- Solve the equation for v_max.
    p.ts[v_max] = nil
    c_max = complex(-1) / c_max
    p = linear(c_max) * p
    p:simplify()
+   -- v_max is a dependent variable defined by p
    if verbose then
       display(v_max.." is "..tostring(p).."\n")
    end
    c = p:number()
-   if c then
+   if c then			-- We found an answer!
       solved(v_max, c)
    end
-   for ve, pe in pairs(env) do
+   for ve, pe in pairs(env) do	-- Propagate the new dependency
       env[ve] = pe:subst(ve, p, v_max)
    end
-   env[v_max] = p
+   env[v_max] = p     -- Add new dependent variable to the environment
 end   
 
+-- Linear equation constructors accessed by the parser
+
 function variable(var)
-   local val = env[var]
-   if val then
-      return val
+   local val = env[var]		-- If the variable is a dependent
+   if val then			-- variable or names a function,
+      return val		-- replace the variable with its value
    else
       return linear(complex(0), {[var] = complex(1)})
    end
 end
 
-function number(x, y)
-   return linear(complex(x, y))
+function number(x)
+   return linear(complex(x))
 end
 
-env.i = number(0, 1)
-
-function application(fun, arg)
-   local var = fun:variable()
-   local val = func[var]
+function application(fun, arg)	-- Apply a function to an argument
+   local val = fun.func		-- The argument must be a number
    local num = arg:number()
-   if not var then
-      err("function not well formed")
-   elseif not val then
-      err("function "..var.." not defined")
+   if not val then
+      err(fun:tostring().." not a function")
    elseif not num then
-      err("function "..var.." not applied to a number")
+      err("function "..fun:tostring().." not applied to a number")
    else
       return linear(val(num))
    end
 end
 
+-- Donald Knuth's mediation notation is defined by:
 -- x [y, z] = y + t * (z - y)
 function mediation(scale, left, right)
    return left + scale * (right - left)

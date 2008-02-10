@@ -29,8 +29,7 @@ letter		[A-Za-z]
 digit		[0-9]
 id		{letter}({letter}|{digit}|_)*
 var		{id}#(r|i)
-sign		("+"|"-")?
-num		{sign}({digit}+("."{digit}*)?|"."{digit}+)
+num		{digit}+("."{digit}*)?|"."{digit}+
 punct		"+"|"-"|"*"|"/"|"^"|"["|","|"]"|"("|")"|"="|";"
 
 %%
