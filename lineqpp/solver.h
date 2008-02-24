@@ -10,6 +10,7 @@ void solver_init(int debug);
 void solver_close(void);
 
 void mk_var(char *var);
+void mk_avar(void);
 void mk_num(double num);
 void mk_app(void);
 void mk_med(void);

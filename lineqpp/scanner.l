@@ -44,6 +44,8 @@ punct		"+"|"-"|"*"|"/"|"^"|"["|","|"]"|"("|")"|"="|";"
 
 <leq>{id}	{ mk_var(yytext); return ID; }
 
+<leq>"?"	{ mk_avar(); return ID; }
+
 <leq>{num}	{ mk_num(atof(yytext)); return NUM; }
 
 <leq>{punct}	{ return yytext[0]; }

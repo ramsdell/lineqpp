@@ -100,6 +100,15 @@ mk_var(char *var)
 }
 
 void
+mk_avar(void)
+{
+  if (!lua_checkstack(L, 1))
+    err("Stack cannot grow");
+  lua_getfield(L, LUA_GLOBALSINDEX, "anonymous_variable");
+  pcall(0, 1);
+}
+
+void
 mk_num(double num)
 {
   if (!lua_checkstack(L, 2))

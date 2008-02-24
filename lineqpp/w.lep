@@ -1,0 +1,24 @@
+#lineqpp z1=-z2=.2;
+#lineqpp x3=-x6=.3;
+#lineqpp x3+y3=x6+y6=1.1;
+#lineqpp z3=x3+y3*i; z6=x6+y6*i; 
+#lineqpp z4=(1/3)[z3,z6];
+#lineqpp z5=(2/3)[z3,z6];
+#lineqpp z20=?[z1,z3]=?[z2,z4];
+#lineqpp z30=?[z1,z4]=?[z2,z5];
+#lineqpp z40=?[z1,z5]=?[z2,z6];
+
+beginfig(13);
+z1=-z2=(.2in,0);
+x3=-x6=.3in;
+x3+y3=x6+y6=1.1in;
+z4=1/3[z3,z6];
+z5=2/3[z3,z6];
+z20=whatever[z1,z3]=whatever[z2,z4];
+z30=whatever[z1,z4]=whatever[z2,z5];
+z40=whatever[z1,z5]=whatever[z2,z6];
+draw z1--z20--z2--z30--z1--z40--z2;
+pickup pencircle scaled 1pt;
+draw z1--z2;
+draw z3--z6;
+endfig;

@@ -514,6 +514,15 @@ function variable(var)
    end
 end
 
+-- Generate an anonymous variable
+
+local whatever = 0
+function anonymous_variable()
+   local var = whatever.."z"
+   whatever = whatever + 1
+   return variable(var)
+end
+
 function number(x)
    return linear(complex(x))
 end
@@ -567,5 +576,11 @@ function equation(left, right)
       display(tostring(left).." = "..tostring(right).."\n")
    end
    solve(left - right)
-   return right
+   -- update right with new solutions
+   local ans = linear(right.c)
+   for v, c in pairs(right.ts)
+   do
+      ans = ans + variable(v) * linear(c)
+   end
+   return ans
 end

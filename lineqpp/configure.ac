@@ -1,4 +1,4 @@
-AC_INIT(LinEqPp, 0.0)
+AC_INIT(lineqpp, 0.0)
 
 AC_CONFIG_SRCDIR(lineqpp.c)
 
