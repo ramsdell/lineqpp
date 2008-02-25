@@ -215,8 +215,8 @@ end
 local translation = {}
 
 local function solved(v, z)
-   translation[v.."#r"] = tostring(zero(z.r))
-   translation[v.."#i"] = tostring(zero(z.i))
+   translation[v.."#x"] = tostring(zero(z.r))
+   translation[v.."#y"] = tostring(zero(z.i))
 end
 
 -- This function is called when the preprocessor finds something to be

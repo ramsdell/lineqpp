@@ -28,7 +28,7 @@ static int lineno = 1;
 letter		[A-Za-z]
 digit		[0-9]
 id		{letter}({letter}|{digit}|_)*
-var		{id}#(r|i)
+var		{id}#(x|y)
 num		{digit}+("."{digit}*)?|"."{digit}+
 punct		"+"|"-"|"*"|"/"|"^"|"["|","|"]"|"("|")"|"="|";"
 
