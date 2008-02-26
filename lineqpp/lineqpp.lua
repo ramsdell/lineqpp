@@ -341,68 +341,60 @@ function Complex.__div(z1, z2)
 		  (x2 * y1 - x1 * y2) * sq)
 end
 
---[[
 function Complex.__pow(z1, z2)
+   err("exponentiation not yet implemented")
    if not is_zero(z2.i) then
       err("exponent must be real")
    else
-      z2:zero()
+      z2:zap()
       return (z1:log() * z2):exp()
    end
 end
 
-function Complex.conj(z)
-   return complex(z.r, -z.i)
+-- Mathematical functions--maps from complex values to complex values
+
+local function conj(x, y)
+   return x, -y
 end
 
-function Complex.abs(z)
-   local x, y = z.r, z.i
-   return complex(math.sqrt(x * x + y * y))
+local function abs(x, y)
+   return math.sqrt(x * x + y * y), 0
 end
 
-function Complex.exp(z)
-   local x, y = z.r, z.i
+local function exp(x, y)
    local r = math.exp(x)
-   return complex(r * math.cos(y), r * math.sin(y))
+   return r * math.cos(y), r * math.sin(y)
 end
 
-function Complex.log(z)
-   local x, y = z.r, z.i
+local function log(x, y)
    local r2 = x * x + y * y
-   return complex(0.5 * math.log(r2), math.atan2(y, x))
+   return 0.5 * math.log(r2), math.atan2(y, x)
 end
 
-function Complex.cos(z)
-   local x, y = z.r, z.i
-   return complex(math.cos(x) * math.cosh(y), 
-		  -math.sin(x) * math.sinh(y))
+local function cos(x, y)
+   return math.cos(x) * math.cosh(y), -math.sin(x) * math.sinh(y)
 end
 
-function Complex.sin(z)
-   local x, y = z.r, z.i
-   return complex(math.sin(x) * math.cosh(y), 
-		  math.cos(x) * math.sinh(y))
+local function sin(x, y)
+   return math.sin(x) * math.cosh(y), math.cos(x) * math.sinh(y)
 end
 
-function Complex.rad(z)
-   if not is_zero(z.i) then
+local function rad(x, y)
+   if not is_zero(y) then
       err("rad argument must be real")
    else
-      return complex(math.rad(z.r))
+      return math.rad(x), 0
    end
 end
 
-function Complex.deg(z)
-   if not is_zero(z.i) then
+local function deg(x, y)
+   if not is_zero(y) then
       err("deg argument must be real")
    else
-      return complex(math.deg(z.r))
+      return math.deg(z.r), 0
    end
 end
 
-]]
-
--- Mathematical functions--maps from complex values to complex values
 
 -- Set up metatable so it reports attempts to use functions as variables.
 
@@ -415,7 +407,7 @@ local Map = setmetatable({}, Map_missing)
 Map.__index = Map
 
 local function map(name, func)	-- The math function constructor
-   return setmetatable({name = name, func = func or Complex[name]}, Map)
+   return setmetatable({name = name, func = func}, Map)
 end
 
 function Map.subst(map)		-- Ensure substitutions do nothing
@@ -428,30 +420,32 @@ end
 
 -- Set up the initial environment
 
-env["i#x"] = 0
-env["i#y"] = 1
-env["pi#x"] = math.pi
-env["pi#y"] = 0
---[[
-env.abs = map("abs")
-env.exp = map("exp")
-env.log = map("log")
-env.cos = map("cos")
-env.sin = map("sin")
-env.rad = map("rad")
-env.deg = map("deg")
-]]
+env["i#x"] = linear(0)
+env["i#y"] = linear(1)
+env["pi#x"] = linear(math.pi)
+env["pi#y"] = linear(0)
 
+env.abs = map("abs", abs)
+env.exp = map("exp", exp)
+env.log = map("log", log)
+env.cos = map("cos", cos)
+env.sin = map("sin", sin)
+env.rad = map("rad", rad)
+env.deg = map("deg", deg)
 
 -- Linear equation constructors accessed by the parser
 
-function variable(var)
+local function variable_part(var)
    local val = env[var]		-- If the variable is a dependent
    if val then			-- variable or names a function,
       return val		-- replace the variable with its value
    else
-      return linear(complex(0), {[var] = complex(1)})
+      return linear(0, {[var] = 1})
    end
+end
+
+function variable(var)
+   return complex(variable_part(var.."#x"), variable_part(var.."#y"))
 end
 
 -- Generate an anonymous variable
@@ -475,7 +469,8 @@ function application(fun, arg)	-- Apply a function to an argument
    elseif not x or not y then
       err("function "..fun:tostring().." not applied to a number")
    else
-      return val(x, y)
+      local fx, fy = val(x, y)
+      return complex(linear(fx), linear(fy))
    end
 end
 
@@ -509,7 +504,7 @@ function exponentiation(left, right)
    return left ^ right
 end
 
-function equation(left, right)
+local function equation_part(left, right)
    if verbose then
       left:zap()
       right:zap()
@@ -520,7 +515,12 @@ function equation(left, right)
    local ans = linear(right.c)
    for v, c in pairs(right.ls)
    do
-      ans = ans + variable(v) * linear(c)
+      ans = ans + variable_part(v) * linear(c)
    end
    return ans
+end
+
+function equation(left, right)
+   local x = equation_part(left.x, right.x)
+   return complex(x, equation_part(left.y, right.y))
 end
