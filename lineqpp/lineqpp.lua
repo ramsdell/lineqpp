@@ -299,59 +299,10 @@ local function solve(p)
    env[v_max] = p     -- Add new dependent variable to the environment
 end   
 
--- Complex Linear Polynomials
+-- Mathematical functions--maps from complex values to complex values
 
 -- Reference: "Introduction to Complex Variables and Applications",
 -- Ruel V. Churchill, McGraw-Hill Book Company, Inc, 1949.
-
-local Complex = {}		-- The complex polynomial metatable
-Complex.__index = Complex
-
-local function complex(x, y)	-- The complex polynomial constructor
-   return setmetatable({x = x, y = y or linear(0)}, Complex)
-end
-
-function Complex.__add(z1, z2)
-   return complex(z1.x + z2.x, z1.y + z2.y)
-end
-
-function Complex.__sub(z1, z2)
-   return complex(z1.x - z2.x, z1.y - z2.y)
-end
-
-function Complex.__unm(z)
-   return complex(-z.x, -z.y)
-end
-
-function Complex.__mul(z1, z2)
-   local x1, y1, x2, y2 = z1.x, z1.y, z2.x, z2.y
-   return complex(x1 * x2 - y1 * y2,
-		  x1 * y2 + x2 * y1)
-end
-
-function Complex.__div(z1, z2)
-   local x2, y2 = z2.x, z2.y
-   local c1, c2 = x2:number(), y2:number()
-   if not c1 or not c2 then
-      err("divisor is not a number")
-   end
-   local sq = linear(1 / (c1 * c1 + c2 * c2))
-   local x1, y1 = z1.x, z1.y
-   return complex((x1 * x2 + y1 * y2) * sq,
-		  (x2 * y1 - x1 * y2) * sq)
-end
-
-function Complex.__pow(z1, z2)
-   err("exponentiation not yet implemented")
-   if not is_zero(z2.i) then
-      err("exponent must be real")
-   else
-      z2:zap()
-      return (z1:log() * z2):exp()
-   end
-end
-
--- Mathematical functions--maps from complex values to complex values
 
 local function conj(x, y)
    return x, -y
@@ -395,7 +346,6 @@ local function deg(x, y)
    end
 end
 
-
 -- Set up metatable so it reports attempts to use functions as variables.
 
 local Map_missing = {}
@@ -433,6 +383,61 @@ env.sin = map("sin", sin)
 env.rad = map("rad", rad)
 env.deg = map("deg", deg)
 
+-- Complex Linear Polynomials
+
+local Complex = {}		-- The complex polynomial metatable
+Complex.__index = Complex
+
+local function complex(x, y)	-- The complex polynomial constructor
+   return setmetatable({x = x, y = y or linear(0)}, Complex)
+end
+
+function Complex.__add(z1, z2)
+   return complex(z1.x + z2.x, z1.y + z2.y)
+end
+
+function Complex.__sub(z1, z2)
+   return complex(z1.x - z2.x, z1.y - z2.y)
+end
+
+function Complex.__unm(z)
+   return complex(-z.x, -z.y)
+end
+
+function Complex.__mul(z1, z2)
+   local x1, y1, x2, y2 = z1.x, z1.y, z2.x, z2.y
+   return complex(x1 * x2 - y1 * y2,
+		  x1 * y2 + x2 * y1)
+end
+
+function Complex.__div(z1, z2)
+   local x2, y2 = z2.x, z2.y
+   local x, y = x2:number(), y2:number()
+   if not x or not y then
+      err("divisor is not a number")
+   end
+   local sq = linear(1 / (x * x + y * y))
+   local x1, y1 = z1.x, z1.y
+   return complex((x1 * x2 + y1 * y2) * sq,
+		  (x2 * y1 - x1 * y2) * sq)
+end
+
+function Complex.__pow(z1, z2)
+   local x2, y2 = z2.x:number(), z2.y:number()
+   if not x2 or not y2 then
+      err("exponent not a number")
+   elseif not is_zero(y2) then
+      err("exponent must be real")
+   end
+   local x1, y1 = z1.x:number(), z1.y:number()
+   if not x1 or not y1 then
+      err("exponentiation base not a number")
+   end
+   x1, y1 = log(x1, y1)
+   x1, y1 = exp(x1 * x2, x2 * y1)
+   return complex(linear(x1), linear(x2))
+end
+
 -- Linear equation constructors accessed by the parser
 
 local function variable_part(var)
@@ -462,20 +467,22 @@ function number(x)
 end
 
 function application(fun, arg)	-- Apply a function to an argument
-   local val = fun.func		-- The argument must be a number
+   local f = fun.func		-- The argument must be a number
    local x, y = arg.x:number(), arg.y:number()
-   if not val then
+   if not f then
       err(fun:tostring().." not a function")
    elseif not x or not y then
       err("function "..fun:tostring().." not applied to a number")
    else
-      local fx, fy = val(x, y)
+      local fx, fy = f(x, y)
       return complex(linear(fx), linear(fy))
    end
 end
 
 -- Donald Knuth's mediation notation is defined by:
 -- t [x, y] = x + t * (y - x)
+-- In our case, t can be complex, so we define it by:
+-- t [x, y] = x + xpart t * (y - x)
 function mediation(scale, left, right)
    return left + complex(scale.x, linear(0)) * (right - left)
 end
@@ -504,6 +511,16 @@ function exponentiation(left, right)
    return left ^ right
 end
 
+-- update p with the latest solutions
+local function reduce(p)
+   local ans = linear(p.c)
+   for v, c in pairs(p.ls)
+   do
+      ans = ans + variable_part(v) * linear(c)
+   end
+   return ans
+end
+
 local function equation_part(left, right)
    if verbose then
       left:zap()
@@ -511,16 +528,10 @@ local function equation_part(left, right)
       display(tostring(left).." = "..tostring(right).."\n")
    end
    solve(left - right)
-   -- update right with new solutions
-   local ans = linear(right.c)
-   for v, c in pairs(right.ls)
-   do
-      ans = ans + variable_part(v) * linear(c)
-   end
-   return ans
 end
 
 function equation(left, right)
-   local x = equation_part(left.x, right.x)
-   return complex(x, equation_part(left.y, right.y))
+   equation_part(left.x, right.x)
+   equation_part(reduce(left.y), reduce(right.y))
+   return complex(reduce(right.x), reduce(right.y))
 end
