@@ -4,6 +4,26 @@ Equation solver for the Linear Equation Preprocessor
 Copyright (C) 2008 John D. Ramsdell
 This software is covered by the MIT Open Source License
 
+This file contains the linear equation solver used to derive
+substitutions for variables found by the preprocessor.  The first
+section implements linear polynomials and a solver.  The second
+section implements complex functions.  The third section provides
+complex linear polynomials and the functions used by the parser to
+construct linear polynomials.
+
+The program maintains an association between each dependent variable
+and the linear polynomial of independent variables that defines the
+variable.  Usually, upon solving an equation from the input, a new
+dependent variable and its linear polynomial is added, and occurrences
+of the variable as an independent variable in other linear polynomials
+is replaced by the new dependency.  Dependent variables defined by a
+constant polynomial are candidates for substitution by the
+preprocessor.
+
+The linear equation solver was inspired by, and patterned after the
+one in MetaPost, the main difference being that all numbers in this
+sytem are complex numbers.
+
 ]]
 
 -- Errors orginated by this code are normally printed using an error
@@ -44,6 +64,11 @@ local function zap(x)
    end   
 end
 
+-- Convert a number to a string for display.
+local function s(x)
+   return string.format("%.4f", x)
+end
+
 -- Translation table
 
 -- When a variable has solved, its placed in the translation table for
@@ -52,7 +77,7 @@ end
 local translation = {}
 
 local function solved(v, x)
-   translation[v] = tostring(zap(x))
+   translation[v] = s(zap(x))
 end
 
 -- This function is called when the preprocessor finds something to be
@@ -236,13 +261,13 @@ end
 function Linear.__tostring(p)
    local buf = ""
    if not is_zero(p.c) then
-      buf = " + "..tostring(p.c)
+      buf = " + "..s(p.c)
    end
    for v, c in sorted_pairs(p.ls) do
       if is_zero(c - 1) then
 	 buf = buf.." + "..v
       elseif not is_zero(c) then
-	 buf = buf.." + "..tostring(c)..'*'..v
+	 buf = buf.." + "..s(c)..'*'..v
       end
    end
    if buf:len() > 3 then
@@ -511,7 +536,7 @@ function exponentiation(left, right)
    return left ^ right
 end
 
--- update p with the latest solutions
+-- Update p with the latest solutions.
 local function reduce(p)
    local ans = linear(p.c)
    for v, c in pairs(p.ls)
