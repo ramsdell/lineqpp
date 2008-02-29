@@ -65,12 +65,9 @@ file @file{COPYING} in the source distribution of the software.
 
 @menu
 * Introduction::                Why @command{lineqpp}?
-* Tutorial::                    A quick start.
-* Interpreter::                 Invoking and using.
-* Primitives::                  Predicates implemented by code.
-* Syntax::                      Some language details.
-* Library::                     Embedding the Lineqpp interpreter.
-* Extending::                   Adding primitive predicates
+* Usage::                       Invoking and using.
+* Syntax::                      Language details.
+* Debugging::                   Using debugging information.
 * Copying::                     Terms for copying the software
 * Index::                       A concept index.
 @end menu
@@ -79,7 +76,7 @@ file @file{COPYING} in the source distribution of the software.
 The software described in this manual was written by John D. Ramsdell.
 @end ifnottex
 
-@node    Introduction, Tutorial, Top, Top
+@node    Introduction, Usage, Top, Top
 @chapter Introduction
 
 The lineqpp program solves linear equations and then substitutes the
@@ -88,662 +85,172 @@ equation solving capability similar to what is provided by MetaPost,
 as a general purpose preprocessor.
 
 The program was original conceived to ease the task of creating
-Scalable Vector Graphics (SVG).
-
-motivation for the program was
-
-Queries and database updates are expressed using Lineqpp---a
-declarative logic language in which each formula is a function-free
-Horn clause, and every variable in the head of a clause must appear in
-the body of the clause.  The use of Lineqpp syntax and an
-implementation based on tabling intermediate results, ensures that all
-queries terminate.
-
-The components in this package are designed to be small, and usable on
-memory constrained devices.  The package includes an interactive
-interpreter for Lineqpp, and a library that can be employed to embed a
-small deductive database into C programs.  The library uses the tabled
-logic programming algorithm described in ``Efficient Top-Down
-Computation of Queries under the Well-Founded Semantics'', Chen, W.,
-Swift, T., and Warren, D. S., @cite{J. Logic Prog.}, Vol. 24, No. 3,
-pp. 161-199.  Another important reference is ``Tabled Evaluation with
-Delaying for General Logic Programs'', Chen, W., and Warren, D. S.,
-@cite{J. ACM}, Vol. 43, No. 1, Jan. 1996, pp. 20-74.  Lineqpp is
-described in ``What You Always Wanted to Know About Lineqpp (And Never
-Dared to Ask)'', Stefano Ceri, Georg Gottlob, and Letizia Tanca,
-@cite{IEEE Transactions of Knowledge and Data Engineering}, Vol. 1,
-No. 1, March 1989.
-
-@node    Tutorial, Interpreter, Introduction, Top
-@chapter Tutorial
-
-Lineqpp is introduced by showing a sequence of interactions with a
-Lineqpp interpreter.  The interpreter is started with the
-@command{lineqpp} command.
+Scalable Vector Graphics (SVG), so the program is introduced by
+showing how to use it to specify an SVG image.  The image is described
+in ``A User's Manual for MetaPost'', John D. Hobby, documented version
+0.99, Page 12, part of the Tex Live distribution of December 2007.
+The MetaPost description of the image follows.
 
 @example
 @group
-$ lineqpp
-Lineqpp @value{VERSION}
-
->
+beginfig(13);
+z1=-z2=(.2in,0);
+x3=-x6=.3in;
+x3+y3=x6+y6=1.1in;
+z4=1/3[z3,z6];
+z5=2/3[z3,z6];
+z20=whatever[z1,z3]=whatever[z2,z4];
+z30=whatever[z1,z4]=whatever[z2,z5];
+z40=whatever[z1,z5]=whatever[z2,z6];
+draw z1--z20--z2--z30--z1--z40--z2;
+pickup pencircle scaled 1pt;
+draw z1--z2;
+draw z3--z6;
+endfig;
 @end group
 @end example
 
-@cindex fact, example
-Facts are stored in tables.  If the name of the table is
-@samp{parent}, and @samp{john} is the parent of @samp{douglas}, store
-the fact in the database with this:
+The first eight lines of the body of the figure are a set of linear
+equations, and the remaining four lines contain commands for drawing
+straight lines.  The end points for the lines are determined by
+solving the linear equations.
 
-@example
-> parent(john, douglas).
-@end example
+@cindex whatever
+@cindex anonymous variable
+@cindex mediation expression
+The MetaPost specification uses mediation expressions of the form
+@emph{t[z1,z2]}, which is equivalent to @emph{z1+t*z2}.  The
+@code{whatever} expression is not a variable, but a macro that
+generates an anonymous variable wherever it occurs.
 
-@cindex term
-Each item in the parenthesized list following the name of the table is
-called a @dfn{term}.  A term can be either a logical variable or a
-constant.  Thus far, all the terms shown have been constant terms.
-
-@cindex query
-A query can be used to see if a particular row is in a table.  Type
-this to see if @samp{john} is the parent of @samp{douglas}:
-
-@example
-> parent(john, douglas)?
-parent(john, douglas).
-@end example
-
-Type this to see if @samp{john} is the parent of @samp{ebbon}:
-
-@example
-> parent(john, ebbon)?
-@end example
-
-The query produced no results because @samp{john} is not the parent of
-@samp{ebbon}.  Let's add more rows.
-
-@example
-> parent(bob, john).
-> parent(ebbon, bob).
-@end example
-
-Type the following to list all rows in the @samp{parent} table:
+The @command{lineqpp} syntax for linear equations is similar to what
+is used by MetaPost.  Preprocessor equation input is identified by a
+line of text that begins with @code{#lineqpp}.  A solution to the
+linear equations are retrieved by mentioning a variable.  If the
+variable @code{z} occurs in the equations, the x-part of the solution
+is retrieved by mentioning @code{z#x} and the y-part with @code{z#y}.
+The input to the preprocessor follows.
 
 @example
 @group
-> parent(A, B)?
-parent(john, douglas).
-parent(bob, john).
-parent(ebbon, bob).
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+          "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!--
+#lineqpp z1=-z2=.2;
+#lineqpp x3=-x6=.3;
+#lineqpp x3+y3=x6+y6=1.1;
+#lineqpp z3=x3+y3*i; z6=x6+y6*i; 
+#lineqpp z4=(1/3)[z3,z6];
+#lineqpp z5=(2/3)[z3,z6];
+#lineqpp z20=?[z1,z3]=?[z2,z4];
+#lineqpp z30=?[z1,z4]=?[z2,z5];
+#lineqpp z40=?[z1,z5]=?[z2,z6];
+#lineqpp w=z20-z40;
+  -->
+<svg
+ width="w#xin" height="z20#yin" 
+ viewBox="z40#x 0 w#x z20#y"
+ xmlns="http://www.w3.org/2000/svg" version="1.1">
+ <path
+  d = "M z1#x z1#y L z20#x z20#y 
+       z2#x z2#y z30#x z30#y
+       z1#x z1#y z40#x z40#y 
+       z2#x z2#y"
+  style = "stroke-width: 0.02; fill: none; stroke: black"/>
+ <path
+  d = "M z1#x z1#y L z2#x z2#y 
+       M z3#x z3#y L z6#x z6#y"
+  style = "stroke-width: 0.04; fill: none; stroke: black"/>
+</svg>
 @end group
 @end example
 
-Type the following to list all the children of @samp{john}:
-
-@example
-> parent(john, B)?
-parent(john, douglas).
-@end example
-
-@cindex variable
-A term that begins with a capital letter is a logical @dfn{variable}.
-When producing a set of answers, the Lineqpp interpreter lists all
-rows that match the query when each variable in the query is
-substituted for a constant.  The following example produces no
-answers, as there are no substitutions for the variable @samp{A} that
-produce a fact in the database.  This is because no one is the parent
-of oneself.
-
-@example
-> parent(A, A)?
-@end example
-
-@cindex rule, example
-A deductive database can use rules of inference to derive new facts.
-Consider the following rule:
-
-@example
-> ancestor(A, B) :- parent(A, B).
-@end example
-
-The rule says that if @var{A} is the parent of @var{B}, then @var{A}
-is an ancestor of @var{B}.  The other rule defining an ancestor says
-that if @var{A} is the parent of @var{C}, @var{C} is an ancestor of
-@var{B}, then @var{A} is an ancestor of @var{B}.
+The root element of the image produced by the preprocessor follows.
 
 @example
 @group
-> ancestor(A, B) :- \
->>   parent(A, C),  \
->>   ancestor(C, B).
+<svg
+ width="0.8457in" height="2.2857in" 
+ viewBox="-0.3600 0 0.8457 2.2857"
+ xmlns="http://www.w3.org/2000/svg" version="1.1">
+ <path
+  d = "M 0.2000 0.0000 L 0.4857 2.2857 
+       -0.2000 0.0000 -0.0182 2.1818
+       0.2000 0.0000 -0.3600 2.2400 
+       -0.2000 0.0000"
+  style = "stroke-width: 0.02; fill: none; stroke: black"/>
+ <path
+  d = "M 0.2000 0.0000 L -0.2000 0.0000 
+       M 0.3000 0.8000 L -0.3000 1.4000"
+  style = "stroke-width: 0.04; fill: none; stroke: black"/>
+</svg>
 @end group
 @end example
 
-@cindex continuation line, interpreter
-In the interpreter, a line can be continued by ending it with the
-backslash character.
+The SVG image looks similar to the MetaPost specified image, with one
+exception.  It's upside down.  MetaPost, following a long-standing
+mathematical tradition, uses a right-handed coordinate system.  SVG
+follows the convention common in computer graphics of using a
+left-handed coordinate system.
 
-Rules are used to answer queries just as is done for facts.
+@node    Usage, Syntax, Introduction, Top
+@chapter Usage
 
-@example
-@group
-> ancestor(A, B)?
-ancestor(ebbon, bob).
-ancestor(ebbon, douglas).
-ancestor(bob, john).
-ancestor(john, douglas).
-ancestor(ebbon, john).
-ancestor(bob, douglas).
-> ancestor(X,john)?
-ancestor(bob, john).
-ancestor(ebbon, john).
-@end group
-@end example
-
-A fact or a rule can be retracted from the database using tilde
-syntax:
-
-@cindex retraction, example
-@example
-@group
-> parent(bob, john)~
-> parent(A,B)?
-parent(john, douglas).
-parent(ebbon, bob).
-> ancestor(A,B)?
-ancestor(john, douglas).
-ancestor(ebbon, bob).
-@end group
-@end example
-
-Unlike Prolog, the order in which clauses are asserted is irrelevant.
-All queries terminate, and every possible answer is derived.
-
-@cindex clause order, example
-@example
-@group
-> q(X) :- p(X).
-> q(a).
-> p(X) :- q(X).
-> q(X)?
-q(a).
-@end group
-@end example
-
-@node    Interpreter, Primitives, Tutorial, Top
-@chapter Interpreter
-
-The @command{lineqpp} program provides access to a deductive database
-in both interactive or batch mode.  In batch mode, the program reads a
-Lineqpp program, prints the answers to its query, and then exits.  In
-interactive mode, the program treats each line of text it reads as a
-Lineqpp program, prints the answer to its query, and then prompts for
-more input.
-
-The @command{lineqpp} interpreter accepts the following options:
+The @command{lineqpp} program accepts the following options:
 
 @example
 @group
 $ lineqpp -h
-Usage: lineqpp [options] [file]
+Usage: lineqpp [options] [input]
 Options:
   -o file -- output to file (default is standard output)
-  -i      -- enter interactive mode after loading file
+  -d      -- print equation debugging information
   -v      -- print version information
   -h      -- print this message
-Use - as a file name to specify standard input
+Package: lineqpp @value{VERSION}
 @end group
 @end example
 
-@cindex file loading, interpreter
-@cindex equals sign, interpreter
-@cindex continuation line, interpreter
-When in interactive mode, if the first character of a line of input is
-the equals sign, the remaining text on the line is used as the name of
-a file that is loaded into the interpreter.  An incomplete line of
-text can be continued by ending the line with the backslash character.
-
-@node    Primitives, Syntax, Interpreter, Top
-@chapter Primitive Predicates
-
-@cindex equals sign, primitive predicate
-The interpreter provides an equality predicate with infix notation.
-Two terms are equal if both terms are the same constant, or one is a
-constant and the other is a variable.
-
-@example
-@group
-> 1 = 2?
-> 1 = 1?
-1 = 1.
-> X = 1?
-1 = 1.
-> X = X?
-@end group
-@end example
-
-@node    Syntax, Library, Primitives, Top
+@node    Syntax, Debugging, Usage, Top
 @chapter Syntax
 
-@cindex comment syntax
-@cindex whitespace
-In Lineqpp input, whitespace characters are ignored except when they
-separate adjacent tokens or when they occur in strings.  Comments are
-also considered to be whitespace.  The character @samp{%} introduces a
-comment, which extends to the next line break.  Comments do not occur
-inside strings.
+The Linear Equations Preprocessor reads lines of text.  Preprocessor
+equation input is identified by a line of text that begins with
+@code{#lineqpp}.  All other lines are transform input.
 
-@cindex token classes
-@cindex punctuations, token class
-The characters in Lineqpp input are collected into tokens according to
-the rules that follow.  There are four classes of tokens:
-punctuations, variables, identifiers, and strings.  The punctuation
-tokens are: @samp{(}, @samp{,}, @samp{)}, @samp{=}, @samp{:-},
-@samp{.}, @samp{~}, @samp{?}, and @samp{"}.
+The solution for a variable that occurs in the equation input is found
+as soon the linear equations determine its value.  Once a value for a
+variable has been found, occurrences of the variable in transform
+input will be replaced by its value in the output.  Each line of
+equation input is replace by a blank line in the output so that line
+numbers associated with errors in the output also refer to the same
+location in the input.
 
-@cindex variables, token class
-A variable is a sequence of Latin capital and small letters, digits,
-and the underscore character.  A variable must begin with a Latin
-capital letter.
+Variables in the equation input are complex.  Occurrences of a
+variable in transform input refers to its real or imaginary part, not
+the whole complex number.  The real part is referred to by adding the
+suffix @code{#x}, and the imaginary part by adding the suffix
+@code{#y}.
 
-@cindex identifiers, token class
-An identifier is a sequence of printing characters that does not
-contain any of the following characters: @samp{(}, @samp{,}, @samp{)},
-@samp{=}, @samp{:}, @samp{.}, @samp{~}, @samp{?}, @samp{"}, @samp{%},
-and space.  An identifier must not begin with a Latin capital letter.
-Note that the characters that start punctuation are forbidden in
-identifiers, but the hyphen character is allowed.
+US-ASCII is used for equation input.  Syntactically, a variable is a
+letter followed by letters, digits, and underscore characters, and
+a number is a sequence of digits that may include one decimal point.
 
-@cindex strings, token class
-A string is a sequence of characters enclosed in double quotes.
-Characters other than double quote, newline, and backslash may be
-directly included in a string.  The remaining characters may be
-specified using escape characters, @samp{\"}, @samp{\n}, and @samp{\\}
-respectively.
+Expressions are formed using the usual arithmetic operators: binary
+@code{+} (addition), @code{-} (subtraction), @code{*}
+(multiplication), @code{/} (division), and @code{^} (exponentiation);
+and unary @code{-} (negation).
 
-Other escape characters can be used to improve the readability of the
-input.  If a string is too long to fit conveniently on one line, all
-but the final line containing the string can be ended with a backslash
-character, and each backslash newline pair is ignored.  The character
-escape codes from the C programming language are allowed---@samp{\a},
-@samp{\b}, @samp{\f}, @samp{\n}, @samp{\r}, @samp{\t}, @samp{\v},
-@samp{\'}, and @samp{\?}.  The numeric escape codes consist of exactly
-two uppercase hex digits.  Thus the ASCII character newline is
-@samp{\0A}, and zero is @samp{\00}.
 
-@section Literals
-@cindex literal
+function application, @code{?}, and mediation expressions.
 
-@cindex atomic formula
-@cindex predicate symbol
-@cindex constant
-A @dfn{literal}, is a predicate symbol followed by an optional
-parenthesized list of comma separated terms.  A @dfn{predicate symbol}
-is either an identifier or a string.  A term is either a variable or a
-constant.  As with predicate symbols, a @dfn{constant} is either an
-identifier or a string.  The following are literals:
+say when unknowns are allowed.
 
-@example
-@group
-parent(john, douglas)
-zero-arity-literal
-aBcD(-0, "\n\FF")
-"="(3,3)
-""(-0-0-0,&&&,***,"\00")
-@end group
-@end example
+@node    Debugging, Copying, Syntax, Top
+@chapter Debugging Equations
 
-@section Clauses
-@cindex clause
-
-@cindex fact
-@cindex rule
-@cindex head
-@cindex body
-@cindex safe
-A @dfn{clause} is a @dfn{head} literal followed by an optional body.
-A @dfn{body} is a comma separated list of literals.  A clause without
-a body is called a @dfn{fact}, and a @dfn{rule} when it has one.  The
-punctuation @samp{:-} separates the head of a rule from its body.  A
-clause is @dfn{safe} if every variable in its head occurs in some
-literal in its body.  The following are safe clauses:
-
-@example
-@group
-parent(john, douglas)
-ancestor(A, B) :-
-    parent(A, B)
-ancestor(A, B) :-
-    parent(A, C),
-    ancestor(C, B)
-@end group
-@end example
-
-@section Programs
-@cindex program
-
-@cindex assertion
-@cindex retraction
-@cindex reader
-A Lineqpp reader consumes a Lineqpp program.  A @dfn{program} is a
-sequence of zero or more statements, followed by an optional query.  A
-statement is an assertion or a retraction.  An @dfn{assertion} is a
-clause followed by a period, and it adds the clause to the database if
-it is safe.  A @dfn{retraction} is a clause followed by a tilde, and
-it removes the clause from the database.  A @dfn{query} is a literal
-followed by a question mark.  The effect of reading a Lineqpp program
-is to modify the database as directed by its statements, and then to
-return the literal designated as the query.  If no query is specified,
-a reader returns a literal know to have no answers.  The following is
-a program:
-
-@example
-@group
-edge(a, b). edge(b, c). edge(c, d). edge(d, a).
-path(X, Y) :- edge(X, Y).
-path(X, Y) :- edge(X, Z), path(Z, Y).
-path(X, Y)?
-@end group
-@end example
-
-@node    Library, Extending, Syntax, Top
-@chapter Library
-
-The Lineqpp library makes the services provided by a Lineqpp
-interpreter available to C programs as a set of C functions and types.
-The interface is declared in the header file @file{lineqpp.h}.
-
-@cindex @code{dl_db_t}, library type
-The state of a Lineqpp interpreter is maintained by a dynamically
-allocated structure.  A pointer to this structure is passed as the
-first argument to every C function in the library, except to
-@code{dl_open}, which allocates the structure, and returns it as a
-pointer of type @code{dl_db_t}.
-
-@cindex @code{dl_open}, library function
-@example
-dl_db_t dl_open(void);
-@end example
-
-If an error occurs, @code{dl_open} returns the null pointer.  To
-release the resources associated with a Lineqpp interpreter, call
-@code{dl_close}.
-
-@cindex @code{dl_close}, library function
-@example
-void dl_close(dl_db_t);
-@end example
-
-The package name followed by the version number of the library is
-returned by @code{dl_version}.
-
-@cindex @code{dl_version}, library function
-@example
-const char* dl_version(void);
-@end example
-
-@section Loading
-
-The loader reads a Lineqpp program.  A program is a sequence of zero
-or more assertions or retractions, followed by an optional query
-expressed as a literal.  While reading, the loader performs the
-assertions and retractions requested by the program.  It finishes by
-pushing the query literal on the Lineqpp interpreter's stack.  If no
-query is specified, it pushes a literal known to have no answers.
-
-The loader obtains buffers containing characters by calling a
-function given to it of type @code{dl_reader_t}.
-
-@cindex @code{dl_reader_t}, library type
-@example
-typedef const char *(*dl_reader_t)(void *data, size_t *size);
-@end example
-
-When called by the loader, the reader is given the data supplied to
-the loader as its first argument.  If there is no more input
-available, the reader returns a null pointer, otherwise it assigns the
-size of the buffer to the @code{size} parameter, and then returns a
-pointer to the buffer.
-
-The loader reports errors by calling a function given to it of type
-@code{dl_loaderror_t}.
-
-@cindex @code{dl_loaderror_t}, library type
-@example
-typedef void (*dl_loaderror_t)(void *data, int lineno,
-                               int colno, const char *msg);
-@end example
-
-When a loader error occurs, the loader calls this function with the
-data supplied to the loader, the location of the error as a line
-number and column number, and an error message.
-
-@cindex @code{dl_load}, library function
-@example
-int dl_load(dl_db_t database, dl_reader_t reader,
-            dl_loaderror_t loaderror, void *data);
-@end example
-
-This function loads a Lineqpp program.  It uses a reader to obtain a
-sequence of buffers that contain the program.  The load error reporter
-is called when the loader detects an error, and then a non-zero value
-is returned, otherwise, the loader returns zero.  The value in the
-data parameter is passed to both of the supplied functions whenever
-they are called.
-
-Upon success, the loader leaves a literal on the Lineqpp interpreter's
-stack.  To ignore this literal, call @code{dl_pop}.
-
-@cindex @code{dl_pop}, library function
-@example
-int dl_pop(dl_db_t db);
-@end example
-
-The @code{dl_loadbuffer} function loads a Lineqpp program contained in
-one buffer.
-
-@cindex @code{dl_loadbuffer}, library function
-@example
-int dl_loadbuffer(dl_db_t database, const char *buffer,
-                  size_t size, dl_loaderror_t loaderror);
-@end example
-
-@section Querying
-
-The literal left on the stack by the loader can be used to query the
-database.
-
-@cindex @code{dl_ask}, library function
-@example
-int dl_ask(dl_db_t db, dl_answers_t *a);
-@end example
-
-@cindex ground instance of a literal
-@cindex literal, ground instance
-This function asks for a list that contains all ground instances of a
-literal that are a logical consequence of the clauses stored in the
-database.  An instance of a literal is @dfn{ground}, if it is the
-result of substituting some constant for each variable that occurs in
-the literal.  The function always pops the literal from the stack.  If
-some answers are found, they are returned by assigning to the @code{a}
-parameter, a pointer to a freshly allocated list of answers of type
-@code{dl_answers_t}.  The @code{a} parameter is assigned the null
-pointer when there are errors or no answers.  The @code{dl_ask}
-function returns a non-zero value on error.
-
-@cindex @code{dl_free}, library function
-@example
-void dl_free(dl_answers_t a);
-@end example
-
-The @code{dl_free} function frees the space associated with a list of
-answers.
-
-A description of the functions that access the components of a list of
-answers completes this section.
-
-@cindex @code{dl_getpred}, library function
-@example
-char *dl_getpred(dl_answers_t a);
-@end example
-
-This function gets the predicate symbol associated with the answers.
-If the length of the predicate is @var{n}, @var{n} + 1 character
-locations are returned, and the last location is zero.  Other
-character locations in the predicate may be zero.  This function
-returns the null pointer if given it.
-
-@cindex @code{dl_getpredlen}, library function
-@example
-size_t dl_getpredlen(dl_answers_t a);
-@end example
-
-This function gets the length of the predicate symbol associated with
-the answers.  This function returns zero if given the null pointer.
-
-@cindex @code{dl_getpredarity}, library function
-@example
-size_t dl_getpredarity(dl_answers_t a);
-@end example
-
-This function gets the number of terms that makes up each answer.
-This number is called the predicate's arity.  It returns zero if given
-the null pointer.
-
-@cindex @code{dl_getconst}, library function
-@example
-char *dl_getconst(dl_answers_t a, int i, int j);
-@end example
-
-This function gets the constant associated with term @code{j} in
-answer @code{i}.  Zero-based indexing is used throughout.  If the
-length of the constant is @var{n}, @var{n} + 1 character locations are
-returned, and the last location is zero.  Other character locations in
-the constant may be zero.  If there is no specified term or no answers
-at all, the null pointer is returned.
-
-@cindex @code{dl_getconstlen}, library function
-@example
-size_t dl_getconstlen(dl_answers_t a, int i, int j);
-@end example
-
-This function gets the length of the constant associated with term
-@code{j} in answer @code{i}.  Zero-based indexing is used throughout.
-If there is no specified term or no answers at all, zero is returned.
-
-@section Printing
-
-The functions in this section provide support for printing using the
-loader's syntax for constants.
-
-@cindex @code{dl_putlconst}, library function
-@example
-void dl_putlconst(FILE *out, const char *s, size_t n);
-@end example
-
-Print a constant of a given length.  The function assumes the constant
-has @var{n} + 1 character locations, and the last location is zero.
-Other character locations in the constant may be zero.
-
-@cindex @code{dl_putconst}, library function
-@example
-void dl_putconst(FILE *out, const char *s);
-@end example
-
-Print a zero terminated constant.
-
-@cindex @code{dl_widthoflconst}, library function
-@example
-size_t dl_widthoflconst(const char *s, size_t n);
-@end example
-
-Determine the columns needed for a constant with a given length.  The
-function assumes the constant has @var{n} + 1 character locations, and
-the last location is zero.  Other character locations in the constant
-may be zero.
-
-@cindex @code{dl_widthofconst}, library function
-@example
-size_t dl_widthofconst(const char *s);
-@end example
-
-Determine the columns needed for a zero terminated constant.
-
-@node    Extending, Copying, Library, Top
-@chapter Extending
-
-@cindex Lua
-Adding primitive predicates to the Lineqpp interpreter requires
-knowledge of its internals.  Much of the functionality of the
-interpreter is implemented using an embedded language called Lua,
-available at @uref{http://www.lua.org}.  Lua provides the needed
-infrastructure and a small footprint.  As an added bonus, the Lua
-language is a gem.  Knowledge of Lua is a prerequisite for what
-follows.
-
-A pointer of type @code{dl_db_t}, introduced in the previous chapter,
-is implemented as a pointer to a structure that holds the state of a
-Lua interpreter.  When a Lineqpp interpreter is opened, a Lua
-interpreter is opened, some Lua libraries are loaded, and then a Lua
-program that implements much of the Lineqpp interpreter's
-functionality is loaded into the Lua interpreter.  Adding primitives
-to the Lineqpp interpreter involves adding code into the Lua
-interpreter returned by the @code{dl_open} function.
-
-The mechanics of adding primitives is straightforward.  The pointer of
-type @code{dl_db_t} is cast to a pointer of type
-@code{lua_State@tie{}*}.  This pointer can then be used with a variety
-of functions to load code into Lua, such as the @code{lua_dobuffer}
-function.  The more difficult part is to decide what code should be
-loaded.
-
-The source file for the Lineqpp specific Lua code is installed in the
-Lineqpp package's data directory.  The path name of the source file
-typically ends with @file{share/lineqpp/lineqpp.lua}.  The section
-with a comment containing the words ``PRIMITIVES'' is relevant.
-
-@cindex @code{add_iter_prim}, @code{lineqpp} function
-@cindex @code{lineqpp}, Lua package
-There is good support for the case in which a primitive can be defined
-in terms of a Lua iterator.  The file @file{lineqpp.lua} defines the
-@code{lineqpp} package, and it contains the function
-@code{add_iter_prim}.  This function defines a primitive when given a
-predicate symbol, its arity, and an iterator.
-
-When given a literal, the iterator generates a sequences of answers.
-Each answer must be an array.  Each element in the array must be
-either a number or a string.  The length of the array must be equal to
-the arity of the predicate.
-
-What follows is a predicate defined by an iterator that produces one
-answer, and the answer has one element in it---the number three.
-
-@example
-@group
-local function all_threes(literal)
-  return function (s, v)
-    if v then
-      return nil
-    else
-      return @{3@}
-    end
-end
-lineqpp:add_iter_prim("three", 1, all_threes)
-@end group
-@end example
-
-To better integrate with other software written Lua, an existing
-pointer to Lua's state can be made to be used as a Lineqpp
-interpreter.  The Lineqpp specific initialization is performed by
-casting a pointer to Lua's state to a pointer of type @code{dl_db_t},
-and giving to
-
-@cindex @code{dl_init}, library function
-@example
-int dl_init(dl_db_t);
-@end example
-
-@node Copying, Index, Extending, Top
+@node Copying, Index, Debugging, Top
 @appendix Copying the Software
 
 The software described by this manual is covered by the terms of the

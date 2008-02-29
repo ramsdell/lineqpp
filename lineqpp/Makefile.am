@@ -2,7 +2,7 @@ SUBDIRS = lua
 bin_PROGRAMS = lineqpp
 noinst_PROGRAMS = bin2c
 info_TEXINFOS = lineqpp.texi
-pkgdata_DATA = lineqpp.html
+pkgdata_DATA = lineqpp.html lineqpp.lep lineqpp.svg
 check_SCRIPTS = lineqppchk
 
 AM_YFLAGS = -d
@@ -16,6 +16,9 @@ BUILT_SOURCES = parser.h lineqpp.h
 lineqpp_DEPENDENCIES = lua/liblua.a
 lineqpp_LDADD = lua/liblua.a @LEXLIB@ -lm
 
+lineqpp.svg:	lineqpp$(EXEEXT) $(srcdir)/lineqpp.lep
+	./lineqpp -o $@ $(srcdir)/lineqpp.lep
+
 bin2c_SOURCES = bin2c.c
 
 lineqpp.h:	bin2c$(EXEEXT) $(srcdir)/lineqpp.lua
@@ -26,5 +29,5 @@ AM_MAKEINFOHTMLFLAGS = --no-split
 TESTS_ENVIRONMENT = $(SHELL)
 TESTS = $(check_SCRIPTS)
 
-CLEANFILES = lineqppchk.out
+CLEANFILES = lineqppchk.out lineqpp.svg
 EXTRA_DIST = $(pkgdata_DATA) lineqppchk.lep lineqppchk.txt

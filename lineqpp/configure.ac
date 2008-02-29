@@ -1,4 +1,4 @@
-AC_INIT(lineqpp, 0.0)
+AC_INIT(lineqpp, 0.5)
 
 AC_CONFIG_SRCDIR(lineqpp.c)
 
@@ -6,7 +6,7 @@ AM_INIT_AUTOMAKE
 
 AC_PROG_CC
 
-# Add warning when using GGG
+# Add warning when using GCC
 if test "X$GCC" = Xyes ; then
   CFLAGS="$CFLAGS -Wall"
 fi
