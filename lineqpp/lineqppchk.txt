@@ -1,2 +1,30 @@
+a#x = b#x
+b#x is a#x
+a#y = b#y
+a#y is b#y
+a#x = 4.0000
+a#x is 4.0000
+b#x is 4.0000
+b#y = 0
+b#y is 0
+a#y is 0
+-3.0000*x#x + 4.0000*y#x = 4.0000
+y#x is 1.0000 + 0.7500*x#x
+-3.0000*x#y + 4.0000*y#y = 0
+y#y is 0.7500*x#y
+3.0000 = w#x
+w#x is 3.0000
+0 = w#y
+w#y is 0
+1.4142 = u#x
+u#x is 1.4142
+0 = u#y
+u#y is 0
+/* Run this test with the -d option */
 
-double a = a#r;
+double a = 4.0000;
+
+
+
+double sqrt2 = 1.4142;
+/* This is the end */

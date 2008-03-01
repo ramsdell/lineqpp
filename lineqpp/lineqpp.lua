@@ -375,7 +375,8 @@ end
 
 local Map_missing = {}
 function Map_missing.__index(table, key)
-   err("function used as a variable")
+   err("function value misused: "..key.." unrecognized")
+--   err("function value misused")
 end
 
 local Map = setmetatable({}, Map_missing)
@@ -393,20 +394,25 @@ function Map.__tostring(map)
    return map.name
 end
 
+local function def(name, func)
+   local val = map(name, func)
+   env[name.."#x"] = val
+   env[name.."#y"] = val
+end
+
 -- Set up the initial environment
 
 env["i#x"] = linear(0)
 env["i#y"] = linear(1)
 env["pi#x"] = linear(math.pi)
 env["pi#y"] = linear(0)
-
-env.abs = map("abs", abs)
-env.exp = map("exp", exp)
-env.log = map("log", log)
-env.cos = map("cos", cos)
-env.sin = map("sin", sin)
-env.rad = map("rad", rad)
-env.deg = map("deg", deg)
+def("abs", abs)
+def("exp", exp)
+def("log", log)
+def("cos", cos)
+def("sin", sin)
+def("rad", rad)
+def("deg", deg)
 
 -- Complex Linear Polynomials
 
@@ -460,7 +466,7 @@ function Complex.__pow(z1, z2)
    end
    x1, y1 = log(x1, y1)
    x1, y1 = exp(x1 * x2, x2 * y1)
-   return complex(linear(x1), linear(x2))
+   return complex(linear(x1), linear(y1))
 end
 
 -- Linear equation constructors accessed by the parser
@@ -492,12 +498,12 @@ function number(x)
 end
 
 function application(fun, arg)	-- Apply a function to an argument
-   local f = fun.func		-- The argument must be a number
+   local f = fun.x.func		-- The argument must be a number
    local x, y = arg.x:number(), arg.y:number()
    if not f then
-      err(fun:tostring().." not a function")
+      err(tostring(fun.x).." not a function")
    elseif not x or not y then
-      err("function "..fun:tostring().." not applied to a number")
+      err("function "..tostring(fun.x).." not applied to a number")
    else
       local fx, fy = f(x, y)
       return complex(linear(fx), linear(fy))

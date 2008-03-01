@@ -1,7 +1,8 @@
-#lineqpp a = b ; a = 4;
-double a = a#r;
+/* Run this test with the -d option */
+#lineqpp a = b; a = 4;
+double a = a#x;
 #lineqpp a[x,y] = b;
-#lineqpp abs = w;
-
-
-
+#lineqpp abs(-3) = w;
+#lineqpp 2^(1/2) = u;
+double sqrt2 = u#x;
+/* This is the end */
