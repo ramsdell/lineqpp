@@ -23,7 +23,7 @@ file @file{COPYING} in the source distribution of the software.
 @dircategory Graphics
 
 @direntry
-* lineqpp: (lineqpp).       A linear equations preprocessor.
+* lineqpp               A linear equations preprocessor.
 @end direntry
 
 @c  This title page illustrates only one of the
@@ -66,10 +66,9 @@ file @file{COPYING} in the source distribution of the software.
 @menu
 * Introduction::                Why @command{lineqpp}?
 * Usage::                       Invoking and using.
-* Syntax::                      Language details.
+* Equations::                   Language details.
 * Debugging::                   Using debugging information.
 * Copying::                     Terms for copying the software
-* Index::                       A concept index.
 @end menu
 
 @ifnottex
@@ -87,9 +86,9 @@ as a general purpose preprocessor.
 The program was original conceived to ease the task of creating
 Scalable Vector Graphics (SVG), so the program is introduced by
 showing how to use it to specify an SVG image.  The image is described
-in ``A User's Manual for MetaPost'', John D. Hobby, documented version
-0.99, Page 12, part of the Tex Live distribution of December 2007.
-The MetaPost description of the image follows.
+by John D. Hobby in @cite{A User's Manual for MetaPost}, documented
+version 0.99, Page 12, part of the Tex Live distribution of December
+2007.  The MetaPost description of the image follows.
 
 @example
 @group
@@ -115,9 +114,6 @@ equations, and the remaining four lines contain commands for drawing
 straight lines.  The end points for the lines are determined by
 solving the linear equations.
 
-@cindex whatever
-@cindex anonymous variable
-@cindex mediation expression
 The MetaPost specification uses mediation expressions of the form
 @emph{t[z1,z2]}, which is equivalent to @emph{z1+t*z2}.  The
 @code{whatever} expression is not a variable, but a macro that
@@ -127,7 +123,7 @@ The @command{lineqpp} syntax for linear equations is similar to what
 is used by MetaPost.  Preprocessor equation input is identified by a
 line of text that begins with @code{#lineqpp}.  A solution to the
 linear equations are retrieved by mentioning a variable.  If the
-variable @code{z} occurs in the equations, the x-part of the solution
+variable @code{z} occurs in the equations, the x-part of its solution
 is retrieved by mentioning @code{z#x} and the y-part with @code{z#y}.
 The input to the preprocessor follows.
 
@@ -188,13 +184,20 @@ The root element of the image produced by the preprocessor follows.
 @end group
 @end example
 
+@ifhtml
+The output was generated with the following command.
+@example
+$ lineqpp -o @uref{lineqpp.svg} @uref{lineqpp.lep}
+@end example
+@end ifhtml
+
 The SVG image looks similar to the MetaPost specified image, with one
 exception.  It's upside down.  MetaPost, following a long-standing
 mathematical tradition, uses a right-handed coordinate system.  SVG
 follows the convention common in computer graphics of using a
 left-handed coordinate system.
 
-@node    Usage, Syntax, Introduction, Top
+@node    Usage, Equations, Introduction, Top
 @chapter Usage
 
 The @command{lineqpp} program accepts the following options:
@@ -212,8 +215,8 @@ Package: lineqpp @value{VERSION}
 @end group
 @end example
 
-@node    Syntax, Debugging, Usage, Top
-@chapter Syntax
+@node    Equations, Debugging, Usage, Top
+@chapter Equations
 
 The Linear Equations Preprocessor reads lines of text.  Preprocessor
 equation input is identified by a line of text that begins with
@@ -242,15 +245,69 @@ Expressions are formed using the usual arithmetic operators: binary
 (multiplication), @code{/} (division), and @code{^} (exponentiation);
 and unary @code{-} (negation).
 
+Syntactically, equations are a sequence of two or more expressions
+separated by the equal sign, and terminated with a semicolon.
+Equations and expressions may span multiple lines of equation input,
+and transform input may intercede.
 
-function application, @code{?}, and mediation expressions.
+For each pair of expressions that are equated, the program interprets
+both expressions as a complex linear polynomial.  Internally, it
+treats each complex polynomial as a pair of real polynomials, and each
+variable as a pair of real valued variables.  As a result, the
+solution for the real part of a variable may found even when the input
+does not determine its imaginary part.
 
-say when unknowns are allowed.
+Equation solving operates on real linear polynomials.  The program
+distinguishes between independent and dependent variables.  A
+dependent variable is defined by a linear polynomial of independent
+variables.  Each variable is initially independent, and solving one
+equation causes one independent variable to become dependent.  A
+dependent variable defined by a constant polynomial is a candidate for
+substitution by the preprocessor in transform input.  This program
+implements the equation solving algorithm described in Chapter 9 of
+Donald E. Knuth, @cite{The METAFONTbook}, Addison-Wesley, 1986.
 
-@node    Debugging, Copying, Syntax, Top
+In general, the product of two linear polynomials is not a linear
+polynomial.  An error is raised if the program is asked to multiply
+two linear polynomials unless at least one of the two is a constant.
+Division succeeds only when the divisor is a constant.
+
+Following Knuth, the program supports mediation expressions of the
+form @emph{t[z1,z2]}, but since every variable is complex, it is
+defined to be @emph{z1+s*z2}, where @emph{s} has the same real part as
+does @emph{t} and zero for its imaginary part.  Each occurrence of
+@code{?} in equation input generates an anonymous variable, the analog
+of Knuth's @code{whatever}.
+
+Functions may be applied to expressions that name constants.  The
+functions that can be applied to complex numbers are: @code{abs},
+@code{exp}, @code{log}, @code{cos}, and @code{sin}.  The functions that
+can only be applied to real numbers convert between radians and
+degrees are: @code{rad} and @code{deg}.  
+
+The program begins with definitions for the variables @code{pi} and
+@code{i}. 
+
+@node    Debugging, Copying, Equations, Top
 @chapter Debugging Equations
 
-@node Copying, Index, Debugging, Top
+The command-line option @code{-d} causes debugging information to be
+written to standard error.  In this mode, just before an equation is
+solved, it is printed.  In addition, output is generated whenever
+there is an update to the linear polynomial that defines a dependent
+variable.  The word @emph{is} identifies an update.  A small part of
+the debugging information generated by the example in the introduction
+follows.
+
+@example
+0.3000 + y3#x = -0.3000 + y6#x
+y6#x is 0.6000 + y3#x
+0.3000 + y3#x = 1.1000
+y3#x is 0.8000
+y6#x is 1.4000
+@end example
+
+@node Copying, , Debugging, Top
 @appendix Copying the Software
 
 The software described by this manual is covered by the terms of the
@@ -279,10 +336,5 @@ THE SOFTWARE.
 @iftex
 @vskip 0pt plus 1filll
 @end iftex
-
-@node    Index,  , Copying, Top
-@unnumbered Index
-
-@printindex cp
 
 @bye
