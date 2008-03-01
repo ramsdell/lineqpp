@@ -1,4 +1,4 @@
---[[ 
+--[[
 
 Equation solver for the Linear Equation Preprocessor
 Copyright (C) 2008 John D. Ramsdell
@@ -61,7 +61,7 @@ local function zap(x)
       return 0
    else
       return x
-   end   
+   end
 end
 
 -- Convert a number to a string for display.
@@ -161,7 +161,7 @@ function Linear.__add(p1, p2)
    end
    return linear(p1.c + p2.c, ls)
 end
-   
+
 function Linear.__sub(p1, p2)
    local ls = {}
    for v1, c1 in pairs(p1.ls) do
@@ -322,7 +322,7 @@ local function solve(p)
       env[ve] = pe:subst(ve, p, v_max)
    end
    env[v_max] = p     -- Add new dependent variable to the environment
-end   
+end
 
 -- Mathematical functions--maps from complex values to complex values
 

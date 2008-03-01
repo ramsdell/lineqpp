@@ -1,0 +1,14 @@
+Lineqpp: A Linear Equations Preprocessor
+
+QUICK START
+
+: To build lineqpp type:
+$ ./configure
+$ make
+
+: To run it, type:
+$ ./lineqpp -o lineqpp.svg lineqpp.lep
+
+DOCUMENTATION
+
+See lineqpp.html.

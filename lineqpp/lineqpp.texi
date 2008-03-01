@@ -32,7 +32,7 @@ file @file{COPYING} in the source distribution of the software.
 @titlepage
 @title Lineqpp User Manual
 @subtitle User Manual for the Linear Equations Preprocessor Version
-@value{VERSION} 
+@value{VERSION}
 @author John D. Ramsdell
 
 @c  The following two commands
@@ -136,7 +136,7 @@ The input to the preprocessor follows.
 #lineqpp z1=-z2=.2;
 #lineqpp x3=-x6=.3;
 #lineqpp x3+y3=x6+y6=1.1;
-#lineqpp z3=x3+y3*i; z6=x6+y6*i; 
+#lineqpp z3=x3+y3*i; z6=x6+y6*i;
 #lineqpp z4=(1/3)[z3,z6];
 #lineqpp z5=(2/3)[z3,z6];
 #lineqpp z20=?[z1,z3]=?[z2,z4];
@@ -145,17 +145,17 @@ The input to the preprocessor follows.
 #lineqpp w=z20-z40;
   -->
 <svg
- width="w#xin" height="z20#yin" 
+ width="w#xin" height="z20#yin"
  viewBox="z40#x 0 w#x z20#y"
  xmlns="http://www.w3.org/2000/svg" version="1.1">
  <path
-  d = "M z1#x z1#y L z20#x z20#y 
+  d = "M z1#x z1#y L z20#x z20#y
        z2#x z2#y z30#x z30#y
-       z1#x z1#y z40#x z40#y 
+       z1#x z1#y z40#x z40#y
        z2#x z2#y"
   style = "stroke-width: 0.02; fill: none; stroke: black"/>
  <path
-  d = "M z1#x z1#y L z2#x z2#y 
+  d = "M z1#x z1#y L z2#x z2#y
        M z3#x z3#y L z6#x z6#y"
   style = "stroke-width: 0.04; fill: none; stroke: black"/>
 </svg>
@@ -167,17 +167,17 @@ The root element of the image produced by the preprocessor follows.
 @example
 @group
 <svg
- width="0.8457in" height="2.2857in" 
+ width="0.8457in" height="2.2857in"
  viewBox="-0.3600 0 0.8457 2.2857"
  xmlns="http://www.w3.org/2000/svg" version="1.1">
  <path
-  d = "M 0.2000 0.0000 L 0.4857 2.2857 
+  d = "M 0.2000 0.0000 L 0.4857 2.2857
        -0.2000 0.0000 -0.0182 2.1818
-       0.2000 0.0000 -0.3600 2.2400 
+       0.2000 0.0000 -0.3600 2.2400
        -0.2000 0.0000"
   style = "stroke-width: 0.02; fill: none; stroke: black"/>
  <path
-  d = "M 0.2000 0.0000 L -0.2000 0.0000 
+  d = "M 0.2000 0.0000 L -0.2000 0.0000
        M 0.3000 0.8000 L -0.3000 1.4000"
   style = "stroke-width: 0.04; fill: none; stroke: black"/>
 </svg>
@@ -283,10 +283,10 @@ Functions may be applied to expressions that name constants.  The
 functions that can be applied to complex numbers are: @code{abs},
 @code{exp}, @code{log}, @code{cos}, and @code{sin}.  The functions that
 can only be applied to real numbers convert between radians and
-degrees are: @code{rad} and @code{deg}.  
+degrees are: @code{rad} and @code{deg}.
 
 The program begins with definitions for the variables @code{pi} and
-@code{i}. 
+@code{i}.
 
 @node    Debugging, Copying, Equations, Top
 @chapter Debugging Equations

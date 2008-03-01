@@ -75,13 +75,13 @@ end
 
 function Complex.cos(z)
    local x, y = z.x, z.y
-   return complex(math.cos(x) * math.cosh(y), 
+   return complex(math.cos(x) * math.cosh(y),
 		  -math.sin(x) * math.sinh(y))
 end
 
 function Complex.sin(z)
    local x, y = z.x, z.y
-   return complex(math.sin(x) * math.cosh(y), 
+   return complex(math.sin(x) * math.cosh(y),
 		  math.cos(x) * math.sinh(y))
 end
 
