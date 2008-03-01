@@ -30,4 +30,5 @@ TESTS_ENVIRONMENT = $(SHELL)
 TESTS = $(check_SCRIPTS)
 
 CLEANFILES = lineqppchk.out lineqpp.svg
-EXTRA_DIST = $(pkgdata_DATA) lineqppchk.lep lineqppchk.txt
+EXTRA_DIST = $(pkgdata_DATA) $(check_SCRIPTS) lineqpp.lua	\
+lineqppchk.lep lineqppchk.txt
