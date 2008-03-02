@@ -122,7 +122,7 @@ generates an anonymous variable wherever it occurs.
 The @command{lineqpp} syntax for linear equations is similar to what
 is used by MetaPost.  Preprocessor equation input is identified by a
 line of text that begins with @code{#lineqpp}.  A solution to the
-linear equations are retrieved by mentioning a variable.  If the
+linear equations is retrieved by mentioning a variable.  If the
 variable @code{z} occurs in the equations, the x-part of its solution
 is retrieved by mentioning @code{z#x} and the y-part with @code{z#y}.
 The input to the preprocessor follows.
@@ -283,7 +283,7 @@ Functions may be applied to expressions that name constants.  The
 functions that can be applied to complex numbers are: @code{abs},
 @code{exp}, @code{log}, @code{cos}, and @code{sin}.  The functions that
 can only be applied to real numbers convert between radians and
-degrees are: @code{rad} and @code{deg}.
+degrees and are: @code{rad} and @code{deg}.
 
 The program begins with definitions for the variables @code{pi} and
 @code{i}.
