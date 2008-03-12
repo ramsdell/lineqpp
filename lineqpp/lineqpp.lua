@@ -329,10 +329,6 @@ end
 -- Reference: "Introduction to Complex Variables and Applications",
 -- Ruel V. Churchill, McGraw-Hill Book Company, Inc, 1949.
 
-local function conj(x, y)
-   return x, -y
-end
-
 local function abs(x, y)
    return math.sqrt(x * x + y * y), 0
 end

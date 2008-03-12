@@ -1,3 +1,11 @@
+2008-03-12  John D. Ramsdell  <ramsdell@mm144697-pc.mitre.org>
+
+	* configure.ac: Tagged as 1.0, the first stable release.
+
+	* lineqpp.texi: Fix grammatical errors.
+
+	* lineqpp.lua: Purge unused code for complex conjugate.
+
 2008-03-01  John D. Ramsdell  <ramsdell@mitre.org>
 
 	* configure.ac: Tagged as 0.5, the initial release.
