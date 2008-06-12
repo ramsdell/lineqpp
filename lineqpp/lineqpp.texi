@@ -23,7 +23,7 @@ file @file{COPYING} in the source distribution of the software.
 @dircategory Graphics
 
 @direntry
-* lineqpp               A linear equations preprocessor.
+* lineqpp: (lineqpp).               A linear equations preprocessor.
 @end direntry
 
 @c  This title page illustrates only one of the
@@ -192,7 +192,7 @@ $ lineqpp -o @uref{lineqpp.svg} @uref{lineqpp.lep}
 @end ifhtml
 
 The SVG image looks similar to the MetaPost specified image, with one
-exception.  It's upside down.  MetaPost, following a long-standing
+exception.  It's upside down!  MetaPost, following a long-standing
 mathematical tradition, uses a right-handed coordinate system.  SVG
 follows the convention common in computer graphics of using a
 left-handed coordinate system.
