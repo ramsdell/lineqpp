@@ -1,9 +1,11 @@
-2012-06-23  John D. Ramsdell  <ramsdell@mm176650-pc.mitre.org>
+2012-06-23  John D. Ramsdell  <ramsdell@mitre.org>
 
 	* scanner.l: Added option noyywrap because -lf is not
 	available on Fedora 16.
 
-2008-03-12  John D. Ramsdell  <ramsdell@mm144697-pc.mitre.org>
+	* lua: Updated to version 5.1.5
+
+2008-03-12  John D. Ramsdell  <ramsdell@mitre.org>
 
 	* configure.ac: Tagged as 1.0, the first stable release.
 
