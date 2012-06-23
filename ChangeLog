@@ -8,6 +8,8 @@
 	* solver.c (solver_init): Fix standard library loading for Lua
 	5.2.
 
+	* git: Tagged as lineqpp-1.1 with tag v1.1.
+
 2008-03-12  John D. Ramsdell  <ramsdell@mitre.org>
 
 	* configure.ac: Tagged as 1.0, the first stable release.

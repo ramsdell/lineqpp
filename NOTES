@@ -1,7 +1,7 @@
 			   Developer Notes
 
 This file contains notes for developers.  This file is not part of a
-distribution, but simply resides in the CVS repository.
+distribution, but simply resides in the git repository.
 
 To build a GNU Build System from the sources in the repository, type:
 
@@ -10,13 +10,9 @@ To build a GNU Build System from the sources in the repository, type:
 To build a distribution, ensure AC_INIT in configure.ac has the right
 version number.  Tag the release with a name derived from the version
 number.  In other words, if the version number is 2.3, tag the release
-with lineqpp-2_3.  Export the release using the given tag.  Then type:
+with v2.3.
 
    $ autoreconf -i
    $ ./configure
    $ make
    $ make dist
-
-LINEQPP HOMEPAGE
-
-To update the homepage, FTP to ftp.luaforge.net and cd to lineqpp/htdocs.
