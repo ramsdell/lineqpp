@@ -37,7 +37,7 @@ go(int debug, char *input)
 static void
 print_version(const char *program)
 {
-  if (package)
+  if (package != NULL)
     program = package;
   fprintf(stderr, "Package: %s %s\n", program, version);
 }
