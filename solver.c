@@ -28,7 +28,11 @@ pcall_msg(void)
 
 /* Libraries used by lineqpp */
 static const luaL_Reg lualibs[] = {
+#if LUA_VERSION_NUM < 502
   {"", luaopen_base},
+#else
+  {"_G", luaopen_base},
+#endif
   {LUA_MATHLIBNAME, luaopen_math},
   {LUA_TABLIBNAME, luaopen_table},
   {LUA_STRLIBNAME, luaopen_string},
@@ -40,11 +44,16 @@ void
 solver_init(int debug)
 {
   L = luaL_newstate();
-  const luaL_Reg *lib = lualibs;
-  for (; lib->func; lib++) {	/* Load libraries used by the */
-    lua_pushcfunction(L, lib->func); /* Lua lineqpp program. */
+  const luaL_Reg *lib = lualibs; /* Load libraries used by the */
+  for (; lib->func; lib++) {	 /* Lua lineqpp program. */
+#if LUA_VERSION_NUM < 502
+    lua_pushcfunction(L, lib->func);
     lua_pushstring(L, lib->name);
     lua_call(L, 1, 0);
+#else
+    luaL_requiref(L, lib->name, lib->func, 1);
+    lua_pop(L, 1);		/* remove lib */
+#endif
   }
 
   /* Load Lua code */
