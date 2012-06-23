@@ -1,5 +1,3 @@
-%{
-
 /*
   A scanner for the linear equations preprocessor
   Copyright (C) 2008 John D. Ramsdell
@@ -10,6 +8,10 @@
   imaginary part.  When the scanner is in the leq start condition, it
   interprets its input as linear equations to be solved.
 */
+
+%option noyywrap
+
+%{
 
 #include <stdio.h>
 #include <stdlib.h>
